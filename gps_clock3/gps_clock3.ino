@@ -50,15 +50,13 @@ SoftwareSerial gpsSerial(4, 3);  // GPS breakout/shield will use a
                                  // RX = pin 4 and TX = pin 3.
 Adafruit_GPS gps(&gpsSerial);
 
-uint32_t milli1_color  = pixels.Color ( 2,  3,  10);
-uint32_t milli2_color  = pixels.Color ( 4,  6,  15);
-uint32_t milli3_color  = pixels.Color ( 6,  9,  20);
-uint32_t milli4_color  = pixels.Color ( 8, 12,  25);
-uint32_t milli5_color  = pixels.Color ( 10, 15, 30);
-uint32_t second_color  = pixels.Color ( 0, 0, 50);
-uint32_t hour_color    = pixels.Color ( 0, 50, 20);
-uint32_t minutes_color = pixels.Color ( 30, 0, 20);
+uint32_t milli_color   = pixels.Color ( 120, 70, 200);
+uint32_t second_color  = pixels.Color ( 0, 0, 250);
+uint32_t hour_color    = pixels.Color ( 0, 250, 100);
+uint32_t minutes_color = pixels.Color ( 150, 0, 100);
 uint32_t off_color     = pixels.Color ( 0, 0, 0);
+
+bool hashadlock= true;
 
 void setup() {
   // Setup function runs once at startup to initialize the display and GPS.
@@ -85,7 +83,7 @@ void setup() {
 }
 
 uint32_t inhibitTimer =0;     //the time of the last transmission
-uint32_t inhibitPeriod =800;  //900mS
+uint32_t inhibitPeriod =880;  //900mS
 bool dispInhibit = false;
 
 
@@ -97,6 +95,9 @@ void loop() {
   if (gps.newNMEAreceived()) {
     if (gps.parse(gps.lastNMEA())){
       Serial.println ("----GPS Parse OK");
+      if (gps.fix){
+        hashadlock=true;
+      }
     }
     debug();
     inhibitTimer = millis();
@@ -119,7 +120,8 @@ void loop() {
     previousMillis += interval;
 
     //if (gps.fixquality !=0){
-    if (gps.fix){
+    //if (gps.fix){
+    if (hashadlock){
         drawclock(); //shows the clock, as long as GPS is locked, else cylon
     }
     else {
@@ -166,6 +168,13 @@ void clearstrand2(){
   }
 }
 
+void clearstrand3(){
+  //sparkling random colours instead of blank pixels
+  for(int i=0; i<NUMPIXELS; i++){
+    pixels.setPixelColor(i, pixels.Color(random(10,20),0,random(40,60)));
+  }
+}
+
 void cylon(){
   static int i=0;
   int j=0;
@@ -205,7 +214,7 @@ void drawclock(){
   int minutes = gps.minute;
   int seconds = gps.seconds;
   
-  clearstrand();
+  clearstrand3();
   //hours goes form led0 to led11, 1 hour per led
   int hoursled = hours;
   add_color(hoursled, hour_color);
@@ -219,8 +228,19 @@ void drawclock(){
   add_color(secondsled, second_color);
   
   //every second, a pulse crosses the whole strip end to end
-
-  
+  static int i=0;
+  static int s=0;
+  if (i!=16){
+    pixels.setPixelColor(i, milli_color);
+    i++;
+  }
+  else{
+    
+  }
+  if (s!=seconds){
+    i=0;
+    s=seconds;
+  }
 }
 
 //copied from NeoPixel ring clock face by Kevin ALford and modified by Becky Stern for Adafruit Industries
