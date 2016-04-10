@@ -56,7 +56,7 @@ uint32_t hour_color    = pixels.Color ( 0, 250, 100);
 uint32_t minutes_color = pixels.Color ( 150, 0, 100);
 uint32_t off_color     = pixels.Color ( 0, 0, 0);
 
-bool hashadlock= true;
+bool hashadlock= false;
 
 void setup() {
   // Setup function runs once at startup to initialize the display and GPS.
