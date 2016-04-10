@@ -45,9 +45,9 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ80
 // daylight savings time.
 #define HOUR_OFFSET       +10
 
-SoftwareSerial gpsSerial(3, 4);  // GPS breakout/shield will use a 
+SoftwareSerial gpsSerial(4, 3);  // GPS breakout/shield will use a 
                                  // software serial connection with 
-                                 // TX = pin 3 and RX = pin 4.
+                                 // RX = pin 4 and TX = pin 3.
 Adafruit_GPS gps(&gpsSerial);
 
 uint32_t milli1_color  = pixels.Color ( 2,  3,  10);
@@ -88,25 +88,24 @@ void loop() {
   // Loop function runs over and over again to implement the clock logic.
   // Check if GPS has new data and parse it.
   if (gps.newNMEAreceived()) {
-    gps.parse(gps.lastNMEA());
+    if (gps.parse(gps.lastNMEA())){
+      Serial.println ("----GPS Parse OK");
+    }
+    debug();
   }
 
-  Serial.print ("gps.hour=");
-  Serial.print (gps.hour);
-  Serial.println("");
-  Serial.print ("gpsfix=");
-  Serial.print (gps.fixquality);
-  Serial.println("");
-
-  if (gps.fixquality !=0){
-      drawlock(); //shows the clock, as long as GPS is locked, else nightrider
+  //if (gps.fixquality !=0){
+  if (gps.fix){
+      drawclock(); //shows the clock, as long as GPS is locked, else cylon
   }
   else {
     cylon();
   }
   gammacorrect(); //correct brightness
+  gps.read();
   pixels.show(); // This sends the updated pixel color to the hardware.
-  //delay (2); //helps to slow down pixels.show if cylon colours don't look right
+  gps.read();
+  delay (2); //helps to slow down pixels.show to give a more stable GPS parse
 }
 
 SIGNAL(TIMER0_COMPA_vect) {
@@ -154,8 +153,8 @@ void cylon(){
       j=i;
     }
     //pixels.setPixelColor(j, pixels.Color(200,50,150));    //magenta
-    //pixels.setPixelColor(j, pixels.Color(random(0,255),random(0,255),random(0,255)));    //randomises colour every time it moves to the next pixel
-    pixels.setPixelColor(j, pixels.Color(random(100,200),0,random(200,255)));    //random shades of blue, pink, and purple
+    pixels.setPixelColor(j, pixels.Color(random(0,255),random(0,255),random(0,255)));    //randomises colour every time it moves to the next pixel
+    //pixels.setPixelColor(j, pixels.Color(random(100,200),0,random(200,255)));    //random shades of blue, pink, and purple
     i++;
     if (i==32){
       i=0;
@@ -163,7 +162,7 @@ void cylon(){
   }
 }
 
-void drawlock(){
+void drawclock(){
   // Grab the current hours, minutes, seconds from the GPS.
   // This will only be set once the GPS has a fix!  Make sure to add
   // a coin cell battery so the GPS will save the time between power-up/down.
@@ -253,3 +252,17 @@ void gammacorrect(){
   
   }
 }
+
+void debug(){
+  Serial.print ("gps.hour=");
+  Serial.print (gps.hour);
+  Serial.println("");
+  //Serial.print ("gpsfix=");
+  //Serial.print (gps.fixquality);
+  //Serial.println("");
+
+  Serial.print ("gps data=");
+  Serial.print (gps.lastNMEA());
+  Serial.println("");
+}
+
