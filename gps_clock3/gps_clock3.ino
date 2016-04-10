@@ -43,7 +43,7 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ80
 //   https://en.wikipedia.org/wiki/List_of_UTC_time_offsets
 // This value, -7, will set the time to UTC-7 or Pacific Standard Time during
 // daylight savings time.
-#define HOUR_OFFSET       +10
+#define HOUR_OFFSET       +9
 
 SoftwareSerial gpsSerial(4, 3);  // GPS breakout/shield will use a 
                                  // software serial connection with 
@@ -57,7 +57,7 @@ uint32_t milli4_color  = pixels.Color ( 8, 12,  25);
 uint32_t milli5_color  = pixels.Color ( 10, 15, 30);
 uint32_t second_color  = pixels.Color ( 0, 0, 50);
 uint32_t hour_color    = pixels.Color ( 0, 50, 20);
-uint32_t minutes_color = pixels.Color ( 20, 0, 10);
+uint32_t minutes_color = pixels.Color ( 30, 0, 20);
 uint32_t off_color     = pixels.Color ( 0, 0, 0);
 
 void setup() {
@@ -84,28 +84,57 @@ void setup() {
   pixels.begin();
 }
 
+uint32_t inhibitTimer =0;     //the time of the last transmission
+uint32_t inhibitPeriod =800;  //900mS
+bool dispInhibit = false;
+
+
 void loop() {
   // Loop function runs over and over again to implement the clock logic.
+
+  //GPS code
   // Check if GPS has new data and parse it.
   if (gps.newNMEAreceived()) {
     if (gps.parse(gps.lastNMEA())){
       Serial.println ("----GPS Parse OK");
     }
     debug();
+    inhibitTimer = millis();
+    dispInhibit = false;
   }
 
-  //if (gps.fixquality !=0){
-  if (gps.fix){
-      drawclock(); //shows the clock, as long as GPS is locked, else cylon
+  //inhibit code
+  if(millis() - inhibitTimer > inhibitPeriod){
+    dispInhibit = true;
   }
-  else {
-    cylon();
+
+
+
+  //Display code
+  static unsigned long previousMillis = 0;
+  unsigned long currentMillis = millis();
+  const long interval = 10;       //change the speed of the cylon here
+  if (currentMillis - previousMillis >= interval) {
+    //previousMillis = currentMillis;
+    previousMillis += interval;
+
+    //if (gps.fixquality !=0){
+    if (gps.fix){
+        drawclock(); //shows the clock, as long as GPS is locked, else cylon
+    }
+    else {
+      cylon();
+    }
+    gammacorrect(); //correct brightness
+    gps.read();
+    //clearstrand();
+
+    //if we're not inhibited, refresh the display
+    if(dispInhibit == false) pixels.show(); // This sends the updated pixel color to the hardware.
+
+    gps.read();
+    //delay (2); //helps to slow down pixels.show to give a more stable GPS parse
   }
-  gammacorrect(); //correct brightness
-  gps.read();
-  pixels.show(); // This sends the updated pixel color to the hardware.
-  gps.read();
-  delay (2); //helps to slow down pixels.show to give a more stable GPS parse
 }
 
 SIGNAL(TIMER0_COMPA_vect) {
@@ -140,25 +169,19 @@ void clearstrand2(){
 void cylon(){
   static int i=0;
   int j=0;
-  static unsigned long previousMillis = 0;
-  unsigned long currentMillis = millis();
-  const long interval = 10;       //change the speed of the cylon here
-  if (currentMillis - previousMillis >= interval) {
-    //previousMillis = currentMillis;
-    previousMillis += interval;
-    clearstrand2();
-    if (i>=16){
-      j=31-i;
-    }else{
-      j=i;
-    }
-    //pixels.setPixelColor(j, pixels.Color(200,50,150));    //magenta
-    pixels.setPixelColor(j, pixels.Color(random(0,255),random(0,255),random(0,255)));    //randomises colour every time it moves to the next pixel
-    //pixels.setPixelColor(j, pixels.Color(random(100,200),0,random(200,255)));    //random shades of blue, pink, and purple
-    i++;
-    if (i==32){
-      i=0;
-    }
+
+  clearstrand2();
+  if (i>=16){
+    j=31-i;
+  }else{
+    j=i;
+  }
+  //pixels.setPixelColor(j, pixels.Color(200,50,150));    //magenta
+  pixels.setPixelColor(j, pixels.Color(random(0,255),random(0,255),random(0,255)));    //randomises colour every time it moves to the next pixel
+  //pixels.setPixelColor(j, pixels.Color(random(100,200),0,random(200,255)));    //random shades of blue, pink, and purple
+  i++;
+  if (i==32){
+    i=0;
   }
 }
 
@@ -182,22 +205,18 @@ void drawclock(){
   int minutes = gps.minute;
   int seconds = gps.seconds;
   
-  //blank the screen
-  for(int i=0; i<NUMPIXELS; i++){
-    pixels.setPixelColor(i, pixels.Color(0,0,0));
-  }
-  
+  clearstrand();
   //hours goes form led0 to led11, 1 hour per led
   int hoursled = hours;
-  pixels.setPixelColor(hoursled, hour_color);
+  add_color(hoursled, hour_color);
   
   //mins goes from led0 to led11, 5 minutes per led
   int minutesled = minutes/5;
-  pixels.setPixelColor(minutesled, minutes_color);
+  add_color(minutesled, minutes_color);
   
   //seconds goes from led0 to led11
   int secondsled = seconds/5;
-  pixels.setPixelColor(secondsled, second_color);
+  add_color(secondsled, second_color);
   
   //every second, a pulse crosses the whole strip end to end
 
@@ -257,9 +276,16 @@ void debug(){
   Serial.print ("gps.hour=");
   Serial.print (gps.hour);
   Serial.println("");
-  //Serial.print ("gpsfix=");
-  //Serial.print (gps.fixquality);
-  //Serial.println("");
+  Serial.print ("gps.minute=");
+  Serial.print (gps.minute);
+  Serial.println("");
+  Serial.print ("gps.second=");
+  Serial.print (gps.seconds);
+  Serial.println("");
+  Serial.print ("gpsfix=");
+  Serial.print (gps.fixquality);
+  Serial.println("");
+  gps.fix ? Serial.println ("gps has fix"): Serial.println ("gps has no fix");
 
   Serial.print ("gps data=");
   Serial.print (gps.lastNMEA());
