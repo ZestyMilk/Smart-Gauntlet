@@ -1,22 +1,3 @@
-// Clock example using a seven segment display & GPS for time.
-//
-// Must have the Adafruit GPS library installed too!  See:
-//   https://github.com/adafruit/Adafruit-GPS-Library
-//
-// Designed specifically to work with the Adafruit LED 7-Segment backpacks
-// and ultimate GPS breakout/shield:
-// ----> http://www.adafruit.com/products/881
-// ----> http://www.adafruit.com/products/880
-// ----> http://www.adafruit.com/products/879
-// ----> http://www.adafruit.com/products/878
-// ----> http://www.adafruit.com/products/746
-//
-// Adafruit invests time and resources providing this open source code, 
-// please support Adafruit and open-source hardware by purchasing 
-// products from Adafruit!
-//
-// Written by Tony DiCola for Adafruit Industries.
-// Released under a MIT license: https://opensource.org/licenses/MIT
 #include <SoftwareSerial.h>
 #include "Adafruit_GPS.h"
 #include <Adafruit_NeoPixel.h>
@@ -125,7 +106,7 @@ void loop() {
   }
   gammacorrect(); //correct brightness
   pixels.show(); // This sends the updated pixel color to the hardware.
-  delay (5);
+  //delay (2); //helps to slow down pixels.show if cylon colours don't look right
 }
 
 SIGNAL(TIMER0_COMPA_vect) {
@@ -146,7 +127,14 @@ void enableGPSInterrupt() {
 void clearstrand(){
   //Sets all neopixels blank
   for(int i=0; i<NUMPIXELS; i++){
-    pixels.setPixelColor(i, pixels.Color(0,0,0));
+    pixels.setPixelColor(i, (0,0,0));
+  }
+}
+
+void clearstrand2(){
+  //sparkling random colours instead of blank pixels
+  for(int i=0; i<NUMPIXELS; i++){
+    pixels.setPixelColor(i, pixels.Color(random(30,50),0,random(50,80)));
   }
 }
 
@@ -155,17 +143,19 @@ void cylon(){
   int j=0;
   static unsigned long previousMillis = 0;
   unsigned long currentMillis = millis();
-  const long interval = 50;
+  const long interval = 10;       //change the speed of the cylon here
   if (currentMillis - previousMillis >= interval) {
     //previousMillis = currentMillis;
     previousMillis += interval;
-    clearstrand();
+    clearstrand2();
     if (i>=16){
       j=31-i;
     }else{
       j=i;
     }
-    pixels.setPixelColor(j, pixels.Color(200,0,240));
+    //pixels.setPixelColor(j, pixels.Color(200,50,150));    //magenta
+    //pixels.setPixelColor(j, pixels.Color(random(0,255),random(0,255),random(0,255)));    //randomises colour every time it moves to the next pixel
+    pixels.setPixelColor(j, pixels.Color(random(100,200),0,random(200,255)));    //random shades of blue, pink, and purple
     i++;
     if (i==32){
       i=0;
