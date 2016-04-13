@@ -1,10 +1,21 @@
 #include <SoftwareSerial.h>
 #include "Adafruit_GPS.h"
 #include <Adafruit_NeoPixel.h>
+#include <string.h>
+#include <Arduino.h>
+#include <SPI.h>
+#if not defined (_VARIANT_ARDUINO_DUE_X_) && not defined (_VARIANT_ARDUINO_ZERO_)
+  #include <SoftwareSerial.h>
+#endif
+
+#include "Adafruit_BLE.h"
+#include "Adafruit_BluefruitLE_SPI.h"
+#include "Adafruit_BluefruitLE_UART.h"
+#include "BluefruitConfig.h"
+
 
 // Which pin on the Arduino is connected to the NeoPixels?
-// On a Trinket or Gemma we suggest changing this to 1
-#define PIN            2
+#define PIN            6
 
 // How many NeoPixels are attached to the Arduino?
 #define NUMPIXELS      16
@@ -45,7 +56,7 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ80
 // daylight savings time.
 #define HOUR_OFFSET       +10
 
-SoftwareSerial gpsSerial(4, 3);  // GPS breakout/shield will use a 
+SoftwareSerial gpsSerial(0, 1);  // GPS breakout/shield will use a 
                                  // software serial connection with 
                                  // RX = pin 4 and TX = pin 3.
 Adafruit_GPS gps(&gpsSerial);
@@ -59,13 +70,40 @@ uint32_t off_color     = pixels.Color ( 0, 0, 0);
 
 bool hashadlock= false;
 
+Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
+
+/* ...software SPI, using SCK/MOSI/MISO user-defined SPI pins and then user selected CS/IRQ/RST */
+//Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_SCK, BLUEFRUIT_SPI_MISO,
+//                             BLUEFRUIT_SPI_MOSI, BLUEFRUIT_SPI_CS,
+//                             BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
+
+
+// A small helper
+void error(const __FlashStringHelper*err) {
+  Serial.println(err);
+  while (1);
+}
+
+// function prototypes over in packetparser.cpp
+uint8_t readPacket(Adafruit_BLE *ble, uint16_t timeout);
+float parsefloat(uint8_t *buffer);
+void printHex(const uint8_t * data, const uint32_t numBytes);
+
+// the packet buffer
+extern uint8_t packetbuffer[];
+
+//Color
+    uint8_t red = 255;
+    uint8_t green = 255;
+    uint8_t blue = 255;
+    uint8_t animationState = 1;
+
+    int pos = 0, dir = 1; // Position, direction of "eye" for larson scanner animation
+
 void setup() {
+  delay(500);
   // Setup function runs once at startup to initialize the display and GPS.
 
-  // Setup Serial port to print debug output.
-  Serial.begin(115200);
-  Serial.println("Clock starting!");
-  
   // Setup the GPS using a 9600 baud connection (the default for most
   // GPS modules).
   gps.begin(9600);
@@ -83,12 +121,11 @@ void setup() {
   pixels.begin();
 }
 
-uint32_t inhibitTimer =0;     //the time of the last transmission
-uint32_t inhibitPeriod =800;  //900mS
-bool dispInhibit = false;
-
-
 void loop() {
+
+  uint8_t len = readPacket(&ble, BLE_READPACKET_TIMEOUT);
+  if (len != 0) return;
+  
   // Loop function runs over and over again to implement the clock logic.
 
   //GPS code
@@ -102,16 +139,14 @@ void loop() {
       }
     }
     debug();
-    inhibitTimer = millis();
-    dispInhibit = false;
   }
 
-  //inhibit code
-  if(millis() - inhibitTimer > inhibitPeriod){
-    dispInhibit = true;
+// Color
+  if (packetbuffer[1] == 'C') {
+    uint8_t red = packetbuffer[2];
+    uint8_t green = packetbuffer[3];
+    uint8_t blue = packetbuffer[4];
   }
-
-
 
   //Display code
   static unsigned long previousMillis = 0;
@@ -130,14 +165,10 @@ void loop() {
       cylon();
     }
     gammacorrect(); //correct brightness
-    gps.read();
-    //clearstrand();
 
     //if we're not inhibited, refresh the display
-    if(dispInhibit == false) pixels.show(); // This sends the updated pixel color to the hardware.
-
-    gps.read();
-    //delay (2); //helps to slow down pixels.show to give a more stable GPS parse
+    //if(dispInhibit == false) pixels.show(); // This sends the updated pixel color to the hardware.
+    pixels.show();
   }
 }
 
@@ -167,13 +198,6 @@ void clearstrand2(){
   //sparkling random colours instead of blank pixels
   for(int i=0; i<NUMPIXELS; i++){
     pixels.setPixelColor(i, pixels.Color(0, random(50,80),random(80,120)));
-  }
-}
-
-void clearstrand3(){
-  //sparkling random colours instead of blank pixels
-  for(int i=0; i<NUMPIXELS; i++){
-    pixels.setPixelColor(i, pixels.Color(random(0,80),random(0,80),random(0,80)));
   }
 }
 
