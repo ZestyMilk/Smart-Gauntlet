@@ -43,17 +43,18 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ80
 //   https://en.wikipedia.org/wiki/List_of_UTC_time_offsets
 // This value, -7, will set the time to UTC-7 or Pacific Standard Time during
 // daylight savings time.
-#define HOUR_OFFSET       +9
+#define HOUR_OFFSET       +10
 
 SoftwareSerial gpsSerial(4, 3);  // GPS breakout/shield will use a 
                                  // software serial connection with 
                                  // RX = pin 4 and TX = pin 3.
 Adafruit_GPS gps(&gpsSerial);
 
-uint32_t milli_color   = pixels.Color ( 120, 70, 200);
+//uint32_t milli_color   = pixels.Color ( 120, 70, 200); //pale purple millisecond pulse
+uint32_t milli_color   = pixels.Color (random(0,255), random(0,255), random(0,255)); //random colour millisecond pulse
 uint32_t second_color  = pixels.Color ( 0, 0, 250);
-uint32_t hour_color    = pixels.Color ( 0, 250, 100);
-uint32_t minutes_color = pixels.Color ( 150, 0, 100);
+uint32_t hour_color    = pixels.Color ( 0, 250, 0);
+uint32_t minutes_color = pixels.Color ( 250, 0, 0);
 uint32_t off_color     = pixels.Color ( 0, 0, 0);
 
 bool hashadlock= false;
@@ -83,7 +84,7 @@ void setup() {
 }
 
 uint32_t inhibitTimer =0;     //the time of the last transmission
-uint32_t inhibitPeriod =880;  //900mS
+uint32_t inhibitPeriod =850;  //900mS
 bool dispInhibit = false;
 
 
@@ -94,6 +95,7 @@ void loop() {
   // Check if GPS has new data and parse it.
   if (gps.newNMEAreceived()) {
     if (gps.parse(gps.lastNMEA())){
+      Serial.println("");
       Serial.println ("----GPS Parse OK");
       if (gps.fix){
         hashadlock=true;
@@ -114,7 +116,7 @@ void loop() {
   //Display code
   static unsigned long previousMillis = 0;
   unsigned long currentMillis = millis();
-  const long interval = 10;       //change the speed of the cylon here
+  const long interval = 20;       //change the speed of the cylon here
   if (currentMillis - previousMillis >= interval) {
     //previousMillis = currentMillis;
     previousMillis += interval;
@@ -164,20 +166,24 @@ void clearstrand(){
 void clearstrand2(){
   //sparkling random colours instead of blank pixels
   for(int i=0; i<NUMPIXELS; i++){
-    pixels.setPixelColor(i, pixels.Color(random(30,50),0,random(50,80)));
+    pixels.setPixelColor(i, pixels.Color(0, random(50,80),random(80,120)));
   }
 }
 
 void clearstrand3(){
   //sparkling random colours instead of blank pixels
   for(int i=0; i<NUMPIXELS; i++){
-    pixels.setPixelColor(i, pixels.Color(random(10,20),0,random(40,60)));
+    pixels.setPixelColor(i, pixels.Color(random(0,80),random(0,80),random(0,80)));
   }
 }
 
 void cylon(){
-  static int i=0;
+  static int i=0; //first cylon led
+  static int o=2; //second cylon led, change value for starting distance.
+  static int p=4; //second cylon led, change value for starting distance.
   int j=0;
+  int k=0;
+  int l=0;
 
   clearstrand2();
   if (i>=16){
@@ -185,12 +191,32 @@ void cylon(){
   }else{
     j=i;
   }
-  //pixels.setPixelColor(j, pixels.Color(200,50,150));    //magenta
-  pixels.setPixelColor(j, pixels.Color(random(0,255),random(0,255),random(0,255)));    //randomises colour every time it moves to the next pixel
+  if (o>=16){
+    k=31-o;
+  }else{
+    k=o;
+  }
+  if (p>=16){
+    l=31-p;
+  }else{
+    l=p;
+  }
+  pixels.setPixelColor(j, pixels.Color(80,0,150));
+  pixels.setPixelColor(k, pixels.Color(120,0,200));
+  pixels.setPixelColor(l, pixels.Color(160,0,250));
+  //pixels.setPixelColor(j, pixels.Color(random(0,255),random(0,255),random(0,255)));    //randomises colour every time it moves to the next pixel
   //pixels.setPixelColor(j, pixels.Color(random(100,200),0,random(200,255)));    //random shades of blue, pink, and purple
   i++;
   if (i==32){
     i=0;
+  }
+  o++;
+  if (o==32){
+    o=0;
+  }
+  p++;
+  if (p==32){
+    p=0;
   }
 }
 
@@ -198,8 +224,9 @@ void drawclock(){
   // Grab the current hours, minutes, seconds from the GPS.
   // This will only be set once the GPS has a fix!  Make sure to add
   // a coin cell battery so the GPS will save the time between power-up/down.
-  int hours = gps.hour + HOUR_OFFSET;  // Add hour offset to convert from UTC
+  //int hours = gps.hour + HOUR_OFFSET;  // Add hour offset to convert from UTC
                                        // to local time.
+  int hours = gps.hour;
   // Handle when UTC + offset wraps around to a negative or > 23 value.
   if (hours < 0) {
     hours = 24+hours;
@@ -207,14 +234,18 @@ void drawclock(){
   if (hours > 23) {
     hours = 24-hours;
   }
+  hours = hours + HOUR_OFFSET;
   if (TIME_24_HOUR == false){ //set 12 hour time
-  hours %= 12;
+    if (hours > 12) {
+      hours = (hours-12);
+      //hours %= 12;
+    }
   }
   
   int minutes = gps.minute;
   int seconds = gps.seconds;
   
-  clearstrand3();
+  clearstrand();
   //hours goes form led0 to led11, 1 hour per led
   int hoursled = hours;
   add_color(hoursled, hour_color);
@@ -231,7 +262,7 @@ void drawclock(){
   static int i=0;
   static int s=0;
   if (i!=16){
-    pixels.setPixelColor(i, milli_color);
+    pixels.setPixelColor(i, 0,255,255); //pulse colour
     i++;
   }
   else{
@@ -241,6 +272,15 @@ void drawclock(){
     i=0;
     s=seconds;
   }
+  /*
+  Serial.print ("MEL Time: ");
+  Serial.print (hours);
+  Serial.print (":");
+  Serial.print (minutes);
+  Serial.print (":");
+  Serial.print (seconds);
+  Serial.println("");
+  */
 }
 
 //copied from NeoPixel ring clock face by Kevin ALford and modified by Becky Stern for Adafruit Industries
@@ -293,21 +333,19 @@ void gammacorrect(){
 }
 
 void debug(){
-  Serial.print ("gps.hour=");
+  Serial.print ("GPS Time: ");
   Serial.print (gps.hour);
-  Serial.println("");
-  Serial.print ("gps.minute=");
+  Serial.print (":");
   Serial.print (gps.minute);
-  Serial.println("");
-  Serial.print ("gps.second=");
+  Serial.print (":");
   Serial.print (gps.seconds);
-  Serial.println("");
-  Serial.print ("gpsfix=");
+  Serial.println("");  
+  Serial.print ("GPS fix: ");
   Serial.print (gps.fixquality);
   Serial.println("");
-  gps.fix ? Serial.println ("gps has fix"): Serial.println ("gps has no fix");
+  //gps.fix ? Serial.println ("gps has fix"): Serial.println ("gps has no fix");
 
-  Serial.print ("gps data=");
+  Serial.print ("GPS Data=");
   Serial.print (gps.lastNMEA());
   Serial.println("");
 }
