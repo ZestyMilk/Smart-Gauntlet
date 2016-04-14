@@ -141,13 +141,6 @@ void loop() {
     debug();
   }
 
-// Color
-  if (packetbuffer[1] == 'C') {
-    uint8_t red = packetbuffer[2];
-    uint8_t green = packetbuffer[3];
-    uint8_t blue = packetbuffer[4];
-  }
-
   //Display code
   static unsigned long previousMillis = 0;
   unsigned long currentMillis = millis();
@@ -159,6 +152,7 @@ void loop() {
     //if (gps.fixquality !=0){
     //if (gps.fix){
     if (hashadlock){
+        checkcolor();
         drawclock(); //shows the clock, as long as GPS is locked, else cylon
     }
     else {
@@ -241,6 +235,15 @@ void cylon(){
   p++;
   if (p==32){
     p=0;
+  }
+}
+
+void checkcolor(){
+  // Color
+  if (packetbuffer[1] == 'C') {
+    uint8_t red = packetbuffer[2];
+    uint8_t green = packetbuffer[3];
+    uint8_t blue = packetbuffer[4];
   }
 }
 
