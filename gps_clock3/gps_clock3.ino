@@ -61,14 +61,22 @@ SoftwareSerial gpsSerial(0, 1);  // GPS breakout/shield will use a
                                  // RX = pin 4 and TX = pin 3.
 Adafruit_GPS gps(&gpsSerial);
 
-//uint32_t milli_color   = pixels.Color ( 120, 70, 200); //pale purple millisecond pulse
-uint32_t milli_color   = pixels.Color (random(0,255), random(0,255), random(0,255)); //random colour millisecond pulse
-uint32_t second_color  = pixels.Color ( 0, 0, 250);
-uint32_t hour_color    = pixels.Color ( 0, 250, 0);
-uint32_t minutes_color = pixels.Color ( 250, 0, 0);
-uint32_t off_color     = pixels.Color ( 0, 0, 0);
+//Color
+    uint8_t red = 50;
+    uint8_t green = 0;
+    uint8_t blue = 80;
+    uint8_t animationState = 1;
 
-bool hashadlock= false;
+    int pos = 0, dir = 1; // Position, direction of "eye" for larson scanner animation
+
+    uint32_t milli_color   = pixels.Color ( green, blue, red);
+    uint32_t second_color  = pixels.Color ( blue, red, green);
+    uint32_t hour_color    = pixels.Color ( red, green, blue);
+    uint32_t minutes_color = pixels.Color ( red, blue, green);
+    uint32_t off_color     = pixels.Color ( 0, 0, 0);
+
+
+bool hashadlock= true;
 
 Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
 
@@ -91,14 +99,6 @@ void printHex(const uint8_t * data, const uint32_t numBytes);
 
 // the packet buffer
 extern uint8_t packetbuffer[];
-
-//Color
-    uint8_t red = 255;
-    uint8_t green = 255;
-    uint8_t blue = 255;
-    uint8_t animationState = 1;
-
-    int pos = 0, dir = 1; // Position, direction of "eye" for larson scanner animation
 
 void setup() {
   delay(500);
@@ -123,8 +123,8 @@ void setup() {
 
 void loop() {
 
-  uint8_t len = readPacket(&ble, BLE_READPACKET_TIMEOUT);
-  if (len != 0) return;
+  //uint8_t len = readPacket(&ble, BLE_READPACKET_TIMEOUT);
+  //if (len != 0) return;
   
   // Loop function runs over and over again to implement the clock logic.
 
