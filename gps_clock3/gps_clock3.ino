@@ -121,6 +121,14 @@ void setup() {
   pixels.begin();
 }
 
+<<<<<<< HEAD
+=======
+uint32_t inhibitTimer =0;     //the time of the last transmission
+uint32_t inhibitPeriod =850;  //900mS
+bool dispInhibit = false;
+
+
+>>>>>>> parent of 915ed21... Updated animations, more stable clock face
 void loop() {
 
   //uint8_t len = readPacket(&ble, BLE_READPACKET_TIMEOUT);
@@ -197,8 +205,8 @@ void clearstrand2(){
 
 void cylon(){
   static int i=0; //first cylon led
-  static int o=3; //second cylon led, change value for starting distance.
-  static int p=6; //second cylon led, change value for starting distance.
+  static int o=2; //second cylon led, change value for starting distance.
+  static int p=4; //second cylon led, change value for starting distance.
   int j=0;
   int k=0;
   int l=0;
@@ -280,8 +288,6 @@ void drawclock(){
   //mins goes from led0 to led11, 5 minutes per led
   int minutesled = minutes/5;
   add_color(minutesled, minutes_color);
-  int minutes2led = (minutes/5)+1;
-  add_color(minutes2led, minutes_color);
   
   //seconds goes from led0 to led11
   int secondsled = seconds/5;
@@ -289,15 +295,6 @@ void drawclock(){
   
   //every second, a pulse crosses the whole strip end to end
   static int i=0;
-  pixels.setPixelColor(i, 0,255,255); //pulse colour
-  if (i>16){
-    delay (1000);
-    i=0;
-  }else{
-    delay (10);
-    i++;
-  }
-  /*static int i=0;
   static int s=0;
   if (i!=16){
     pixels.setPixelColor(i, 0,255,255); //pulse colour
@@ -310,8 +307,6 @@ void drawclock(){
     i=0;
     s=seconds;
   }
-  */
-  
   /*
   Serial.print ("MEL Time: ");
   Serial.print (hours);
