@@ -227,9 +227,9 @@ void cylon(){
   }else{
     l=p;
   }
-  pixels.setPixelColor(j, pixels.Color(120,0,180));
-  pixels.setPixelColor(k, pixels.Color(150,0,220));
-  pixels.setPixelColor(l, pixels.Color(180,0,250));
+  pixels.setPixelColor(j, pixels.Color(80,0,150));
+  pixels.setPixelColor(k, pixels.Color(120,0,200));
+  pixels.setPixelColor(l, pixels.Color(160,0,250));
   //pixels.setPixelColor(j, pixels.Color(random(0,255),random(0,255),random(0,255)));    //randomises colour every time it moves to the next pixel
   //pixels.setPixelColor(j, pixels.Color(random(100,200),0,random(200,255)));    //random shades of blue, pink, and purple
   i++;
