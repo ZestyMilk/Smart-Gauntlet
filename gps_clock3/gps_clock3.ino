@@ -64,10 +64,10 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ80
 Adafruit_GPS gps(&Serial1);
 
 //uint32_t milli_color   = pixels.Color ( 120, 70, 200); //pale purple millisecond pulse
-uint32_t milli_color   = pixels.Color (random(0,255), random(0,255), random(0,255)); //random colour millisecond pulse
-uint32_t hour_color    = pixels.Color ( 0, 255, 0);
-uint32_t minutes_color = pixels.Color ( 255, 0, 0);
-uint32_t second_color  = pixels.Color ( 0, 0, 255);
+uint32_t milli_color   = pixels.Color ( 255, 180, 60); 
+uint32_t hour_color    = pixels.Color ( random(200, 255), random(150, 180), 60);
+uint32_t minutes_color = pixels.Color ( 200, 120, 0);
+uint32_t second_color  = pixels.Color ( 50, 40, 0);
 uint32_t off_color     = pixels.Color ( 0, 0, 0);
 
 bool hashadlock= false;
@@ -78,7 +78,6 @@ Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_
 //Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_SCK, BLUEFRUIT_SPI_MISO,
 //                             BLUEFRUIT_SPI_MOSI, BLUEFRUIT_SPI_CS,
 //                             BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
-
 
 // A small helper
 void error(const __FlashStringHelper*err) {
@@ -184,7 +183,7 @@ void clearstrand(){
 void clearstrand2(){
   //sparkling random colours instead of blank pixels
   for(int i=0; i<NUMPIXELS; i++){
-    pixels.setPixelColor(i, pixels.Color(0, random(50,80),random(80,120)));
+    pixels.setPixelColor(i, pixels.Color(60, 30, 0));
   }
 }
 
@@ -212,9 +211,9 @@ void cylon(){
   }else{
     l=p;
   }
-  pixels.setPixelColor(j, pixels.Color(120,0,180));
-  pixels.setPixelColor(k, pixels.Color(150,0,220));
-  pixels.setPixelColor(l, pixels.Color(180,0,250));
+  pixels.setPixelColor(j, pixels.Color(120,80,0));
+  pixels.setPixelColor(k, pixels.Color(150,100,0));
+  pixels.setPixelColor(l, pixels.Color(180,150,0));
   //pixels.setPixelColor(j, pixels.Color(random(0,255),random(0,255),random(0,255)));    //randomises colour every time it moves to the next pixel
   //pixels.setPixelColor(j, pixels.Color(random(100,200),0,random(200,255)));    //random shades of blue, pink, and purple
   i++;
@@ -284,7 +283,7 @@ void drawclock(){
   static int i=0;
   static int s=0;
   if (i!=16){
-    pixels.setPixelColor(i, 0,255,255); //pulse colour
+    pixels.setPixelColor(i, milli_color); //pulse colour
     i++;
   }
   else{
