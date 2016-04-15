@@ -1,3 +1,5 @@
+//GPS Clock by Tully Jagoe
+
 #include <SoftwareSerial.h>
 #include "Adafruit_GPS.h"
 #include <Adafruit_NeoPixel.h>
@@ -61,20 +63,12 @@ SoftwareSerial gpsSerial(0, 1);  // GPS breakout/shield will use a
                                  // RX = pin 4 and TX = pin 3.
 Adafruit_GPS gps(&gpsSerial);
 
-//Color
-    uint8_t red = 50;
-    uint8_t green = 0;
-    uint8_t blue = 80;
-    uint8_t animationState = 1;
-
-    int pos = 0, dir = 1; // Position, direction of "eye" for larson scanner animation
-
-    uint32_t milli_color   = pixels.Color ( green, blue, red);
-    uint32_t second_color  = pixels.Color ( blue, red, green);
-    uint32_t hour_color    = pixels.Color ( red, green, blue);
-    uint32_t minutes_color = pixels.Color ( red, blue, green);
-    uint32_t off_color     = pixels.Color ( 0, 0, 0);
-
+//uint32_t milli_color   = pixels.Color ( 120, 70, 200); //pale purple millisecond pulse
+uint32_t milli_color   = pixels.Color (random(0,255), random(0,255), random(0,255)); //random colour millisecond pulse
+uint32_t hour_color    = pixels.Color ( 0, 255, 0);
+uint32_t minutes_color = pixels.Color ( 255, 0, 0);
+uint32_t second_color  = pixels.Color ( 0, 0, 255);
+uint32_t off_color     = pixels.Color ( 0, 0, 0);
 
 bool hashadlock= true;
 
@@ -100,6 +94,14 @@ void printHex(const uint8_t * data, const uint32_t numBytes);
 // the packet buffer
 extern uint8_t packetbuffer[];
 
+//Color
+    uint8_t red = 255;
+    uint8_t green = 255;
+    uint8_t blue = 255;
+    uint8_t animationState = 1;
+
+    int pos = 0, dir = 1; // Position, direction of "eye" for larson scanner animation
+
 void setup() {
   delay(500);
   // Setup function runs once at startup to initialize the display and GPS.
@@ -121,14 +123,6 @@ void setup() {
   pixels.begin();
 }
 
-<<<<<<< HEAD
-=======
-uint32_t inhibitTimer =0;     //the time of the last transmission
-uint32_t inhibitPeriod =850;  //900mS
-bool dispInhibit = false;
-
-
->>>>>>> parent of 915ed21... Updated animations, more stable clock face
 void loop() {
 
   //uint8_t len = readPacket(&ble, BLE_READPACKET_TIMEOUT);
@@ -149,6 +143,13 @@ void loop() {
     debug();
   }
 
+// Color
+  if (packetbuffer[1] == 'C') {
+    uint8_t red = packetbuffer[2];
+    uint8_t green = packetbuffer[3];
+    uint8_t blue = packetbuffer[4];
+  }
+
   //Display code
   static unsigned long previousMillis = 0;
   unsigned long currentMillis = millis();
@@ -160,7 +161,6 @@ void loop() {
     //if (gps.fixquality !=0){
     //if (gps.fix){
     if (hashadlock){
-        checkcolor();
         drawclock(); //shows the clock, as long as GPS is locked, else cylon
     }
     else {
@@ -205,8 +205,8 @@ void clearstrand2(){
 
 void cylon(){
   static int i=0; //first cylon led
-  static int o=2; //second cylon led, change value for starting distance.
-  static int p=4; //second cylon led, change value for starting distance.
+  static int o=3; //second cylon led, change value for starting distance.
+  static int p=6; //second cylon led, change value for starting distance.
   int j=0;
   int k=0;
   int l=0;
@@ -227,9 +227,9 @@ void cylon(){
   }else{
     l=p;
   }
-  pixels.setPixelColor(j, pixels.Color(80,0,150));
-  pixels.setPixelColor(k, pixels.Color(120,0,200));
-  pixels.setPixelColor(l, pixels.Color(160,0,250));
+  pixels.setPixelColor(j, pixels.Color(120,0,180));
+  pixels.setPixelColor(k, pixels.Color(150,0,220));
+  pixels.setPixelColor(l, pixels.Color(180,0,250));
   //pixels.setPixelColor(j, pixels.Color(random(0,255),random(0,255),random(0,255)));    //randomises colour every time it moves to the next pixel
   //pixels.setPixelColor(j, pixels.Color(random(100,200),0,random(200,255)));    //random shades of blue, pink, and purple
   i++;
@@ -243,15 +243,6 @@ void cylon(){
   p++;
   if (p==32){
     p=0;
-  }
-}
-
-void checkcolor(){
-  // Color
-  if (packetbuffer[1] == 'C') {
-    uint8_t red = packetbuffer[2];
-    uint8_t green = packetbuffer[3];
-    uint8_t blue = packetbuffer[4];
   }
 }
 
@@ -288,6 +279,8 @@ void drawclock(){
   //mins goes from led0 to led11, 5 minutes per led
   int minutesled = minutes/5;
   add_color(minutesled, minutes_color);
+  int minutes2led = (minutes/5)+1;
+  add_color(minutes2led, minutes_color);
   
   //seconds goes from led0 to led11
   int secondsled = seconds/5;
@@ -295,6 +288,15 @@ void drawclock(){
   
   //every second, a pulse crosses the whole strip end to end
   static int i=0;
+  pixels.setPixelColor(i, 0,255,255); //pulse colour
+  if (i>16){
+    delay (840);
+    i=0;
+  }else{
+    delay (10);
+    i++;
+  }
+  /*static int i=0;
   static int s=0;
   if (i!=16){
     pixels.setPixelColor(i, 0,255,255); //pulse colour
@@ -307,6 +309,8 @@ void drawclock(){
     i=0;
     s=seconds;
   }
+  */
+  
   /*
   Serial.print ("MEL Time: ");
   Serial.print (hours);
