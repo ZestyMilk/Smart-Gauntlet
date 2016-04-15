@@ -58,10 +58,10 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ80
 // daylight savings time.
 #define HOUR_OFFSET       +10
 
-SoftwareSerial gpsSerial(0, 1);  // GPS breakout/shield will use a 
+//SoftwareSerial gpsSerial(0, 1);  // GPS breakout/shield will use a 
                                  // software serial connection with 
                                  // RX = pin 4 and TX = pin 3.
-Adafruit_GPS gps(&gpsSerial);
+Adafruit_GPS gps(&Serial1);
 
 //uint32_t milli_color   = pixels.Color ( 120, 70, 200); //pale purple millisecond pulse
 uint32_t milli_color   = pixels.Color (random(0,255), random(0,255), random(0,255)); //random colour millisecond pulse
@@ -70,7 +70,7 @@ uint32_t minutes_color = pixels.Color ( 255, 0, 0);
 uint32_t second_color  = pixels.Color ( 0, 0, 255);
 uint32_t off_color     = pixels.Color ( 0, 0, 0);
 
-bool hashadlock= true;
+bool hashadlock= false;
 
 Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
 
@@ -93,14 +93,6 @@ void printHex(const uint8_t * data, const uint32_t numBytes);
 
 // the packet buffer
 extern uint8_t packetbuffer[];
-
-//Color
-    uint8_t red = 255;
-    uint8_t green = 255;
-    uint8_t blue = 255;
-    uint8_t animationState = 1;
-
-    int pos = 0, dir = 1; // Position, direction of "eye" for larson scanner animation
 
 void setup() {
   delay(500);
@@ -141,13 +133,6 @@ void loop() {
       }
     }
     debug();
-  }
-
-// Color
-  if (packetbuffer[1] == 'C') {
-    uint8_t red = packetbuffer[2];
-    uint8_t green = packetbuffer[3];
-    uint8_t blue = packetbuffer[4];
   }
 
   //Display code
@@ -250,8 +235,6 @@ void drawclock(){
   // Grab the current hours, minutes, seconds from the GPS.
   // This will only be set once the GPS has a fix!  Make sure to add
   // a coin cell battery so the GPS will save the time between power-up/down.
-  //int hours = gps.hour + HOUR_OFFSET;  // Add hour offset to convert from UTC
-                                       // to local time.
   int hours = gps.hour;
   // Handle when UTC + offset wraps around to a negative or > 23 value.
   if (hours < 0) {
@@ -287,7 +270,7 @@ void drawclock(){
   add_color(secondsled, second_color);
   
   //every second, a pulse crosses the whole strip end to end
-  static int i=0;
+  /*static int i=0;
   pixels.setPixelColor(i, 0,255,255); //pulse colour
   if (i>16){
     delay (840);
@@ -296,7 +279,9 @@ void drawclock(){
     delay (10);
     i++;
   }
-  /*static int i=0;
+  */
+  
+  static int i=0;
   static int s=0;
   if (i!=16){
     pixels.setPixelColor(i, 0,255,255); //pulse colour
@@ -309,7 +294,7 @@ void drawclock(){
     i=0;
     s=seconds;
   }
-  */
+  
   
   /*
   Serial.print ("MEL Time: ");
