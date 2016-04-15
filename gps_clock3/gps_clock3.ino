@@ -18,6 +18,7 @@
 
 // Which pin on the Arduino is connected to the NeoPixels?
 #define PIN            6
+#define MARKPIN        2
 
 // How many NeoPixels are attached to the Arduino?
 #define NUMPIXELS      16
@@ -46,6 +47,7 @@ const uint8_t gamma[] = {
 // Note that for older NeoPixel strips you might need to change the third parameter--see the strandtest
 // example for more information on possible values.
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel markers = Adafruit_NeoPixel(3, MARKPIN, NEO_GRB + NEO_KHZ800);
 
 // Set to false to display time in 12 hour format, or true to use 24 hour:
 #define TIME_24_HOUR      false
@@ -64,13 +66,13 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ80
 Adafruit_GPS gps(&Serial1);
 
 //uint32_t milli_color   = pixels.Color ( 120, 70, 200); //pale purple millisecond pulse
-uint32_t milli_color   = pixels.Color ( 255, 180, 60); 
-uint32_t hour_color    = pixels.Color ( random(200, 255), random(150, 180), 60);
-uint32_t minutes_color = pixels.Color ( 200, 120, 0);
-uint32_t second_color  = pixels.Color ( 50, 40, 0);
+uint32_t milli_color   = pixels.Color ( 80, 60, 20); 
+uint32_t hour_color    = pixels.Color ( 100, 80, 10);
+uint32_t minutes_color = pixels.Color ( 80, 50, 0);
+uint32_t second_color  = pixels.Color ( 50, 20, 0);
 uint32_t off_color     = pixels.Color ( 0, 0, 0);
 
-bool hashadlock= false;
+bool hashadlock= true;
 
 Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
 
@@ -112,6 +114,7 @@ void setup() {
   
   //Initialise the NeoPixel library (watch this doesn't disable interrupts)
   pixels.begin();
+  markers.begin();
 }
 
 void loop() {
@@ -155,6 +158,7 @@ void loop() {
     //if we're not inhibited, refresh the display
     //if(dispInhibit == false) pixels.show(); // This sends the updated pixel color to the hardware.
     pixels.show();
+    markers.show();
   }
 }
 
@@ -177,6 +181,7 @@ void clearstrand(){
   //Sets all neopixels blank
   for(int i=0; i<NUMPIXELS; i++){
     pixels.setPixelColor(i, (0,0,0));
+    markers.setPixelColor(i, markers.Color(7, 1, 0));
   }
 }
 
@@ -184,6 +189,7 @@ void clearstrand2(){
   //sparkling random colours instead of blank pixels
   for(int i=0; i<NUMPIXELS; i++){
     pixels.setPixelColor(i, pixels.Color(60, 30, 0));
+    markers.setPixelColor(i, markers.Color(60, 15, 0));
   }
 }
 
@@ -246,7 +252,7 @@ void drawclock(){
   if (TIME_24_HOUR == false){ //set 12 hour time
     if (hours > 12) {
       hours = (hours-12);
-      //hours %= 12;
+      hours %= 12;
     }
   }
   
@@ -268,26 +274,13 @@ void drawclock(){
   int secondsled = seconds/5;
   add_color(secondsled, second_color);
   
-  //every second, a pulse crosses the whole strip end to end
-  /*static int i=0;
-  pixels.setPixelColor(i, 0,255,255); //pulse colour
-  if (i>16){
-    delay (840);
-    i=0;
-  }else{
-    delay (10);
-    i++;
-  }
-  */
-  
+  //every second, a pulse crosses the whole strip end to end  
   static int i=0;
   static int s=0;
   if (i!=16){
     pixels.setPixelColor(i, milli_color); //pulse colour
+    delay (50);
     i++;
-  }
-  else{
-    
   }
   if (s!=seconds){
     i=0;
