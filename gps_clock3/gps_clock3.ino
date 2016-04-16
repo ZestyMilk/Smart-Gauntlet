@@ -66,10 +66,11 @@ Adafruit_NeoPixel markers = Adafruit_NeoPixel(3, MARKPIN, NEO_GRB + NEO_KHZ800);
 Adafruit_GPS gps(&Serial1);
 
 //uint32_t milli_color   = pixels.Color ( 120, 70, 200); //pale purple millisecond pulse
-uint32_t milli_color   = pixels.Color ( 80, 60, 20); 
-uint32_t hour_color    = pixels.Color ( 100, 80, 10);
-uint32_t minutes_color = pixels.Color ( 80, 50, 0);
+uint32_t milli_color   = pixels.Color ( 20, 60, 80); 
+uint32_t hour_color    = pixels.Color ( 150, 10, 150);
+uint32_t minutes_color = pixels.Color ( 0, 60, 80);
 uint32_t second_color  = pixels.Color ( 50, 20, 0);
+uint32_t marker_color  = pixels.Color ( 0, 20, 30);
 uint32_t off_color     = pixels.Color ( 0, 0, 0);
 
 bool hashadlock= true;
@@ -181,15 +182,15 @@ void clearstrand(){
   //Sets all neopixels blank
   for(int i=0; i<NUMPIXELS; i++){
     pixels.setPixelColor(i, (0,0,0));
-    markers.setPixelColor(i, markers.Color(7, 1, 0));
+    markers.setPixelColor(i, marker_color);
   }
 }
 
 void clearstrand2(){
   //sparkling random colours instead of blank pixels
   for(int i=0; i<NUMPIXELS; i++){
-    pixels.setPixelColor(i, pixels.Color(60, 30, 0));
-    markers.setPixelColor(i, markers.Color(60, 15, 0));
+    pixels.setPixelColor(i, (60, 30, 0));
+    markers.setPixelColor(i, marker_color);
   }
 }
 
@@ -279,7 +280,6 @@ void drawclock(){
   static int s=0;
   if (i!=16){
     pixels.setPixelColor(i, milli_color); //pulse colour
-    delay (50);
     i++;
   }
   if (s!=seconds){
