@@ -181,7 +181,7 @@ void enableGPSInterrupt() {
 void clearstrand(){
   //Sets all neopixels blank
   for(int i=0; i<NUMPIXELS; i++){
-    pixels.setPixelColor(i, (0,0,0));
+    pixels.setPixelColor(i, (0,0,50));
     markers.setPixelColor(i, marker_color);
   }
 }
@@ -189,7 +189,7 @@ void clearstrand(){
 void clearstrand2(){
   //sparkling random colours instead of blank pixels
   for(int i=0; i<NUMPIXELS; i++){
-    pixels.setPixelColor(i, (0, 30, 60));
+    pixels.setPixelColor(i, (0, 70, 60));
     markers.setPixelColor(i, marker_color);
   }
 }
@@ -218,9 +218,9 @@ void cylon(){
   }else{
     l=p;
   }
-  pixels.setPixelColor(j, pixels.Color(120,0,80));
-  pixels.setPixelColor(k, pixels.Color(150,0,100));
-  pixels.setPixelColor(l, pixels.Color(180,0,150));
+  pixels.setPixelColor(j, pixels.Color(100,0,120));
+  pixels.setPixelColor(k, pixels.Color(130,0,150));
+  pixels.setPixelColor(l, pixels.Color(160,0,180));
   //pixels.setPixelColor(j, pixels.Color(random(0,255),random(0,255),random(0,255)));    //randomises colour every time it moves to the next pixel
   //pixels.setPixelColor(j, pixels.Color(random(100,200),0,random(200,255)));    //random shades of blue, pink, and purple
   i++;
