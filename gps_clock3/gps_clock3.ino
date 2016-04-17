@@ -73,7 +73,7 @@ uint32_t second_color  = pixels.Color ( 50, 20, 0);
 uint32_t marker_color  = pixels.Color ( 0, 20, 30);
 uint32_t off_color     = pixels.Color ( 0, 0, 0);
 
-bool hashadlock= true;
+bool hashadlock= false; //change this to true to show clock without gps lock
 
 Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
 
@@ -189,7 +189,7 @@ void clearstrand(){
 void clearstrand2(){
   //sparkling random colours instead of blank pixels
   for(int i=0; i<NUMPIXELS; i++){
-    pixels.setPixelColor(i, (60, 30, 0));
+    pixels.setPixelColor(i, (0, 30, 60));
     markers.setPixelColor(i, marker_color);
   }
 }
@@ -218,9 +218,9 @@ void cylon(){
   }else{
     l=p;
   }
-  pixels.setPixelColor(j, pixels.Color(120,80,0));
-  pixels.setPixelColor(k, pixels.Color(150,100,0));
-  pixels.setPixelColor(l, pixels.Color(180,150,0));
+  pixels.setPixelColor(j, pixels.Color(120,0,80));
+  pixels.setPixelColor(k, pixels.Color(150,0,100));
+  pixels.setPixelColor(l, pixels.Color(180,0,150));
   //pixels.setPixelColor(j, pixels.Color(random(0,255),random(0,255),random(0,255)));    //randomises colour every time it moves to the next pixel
   //pixels.setPixelColor(j, pixels.Color(random(100,200),0,random(200,255)));    //random shades of blue, pink, and purple
   i++;
