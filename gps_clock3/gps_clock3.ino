@@ -3,25 +3,28 @@
 #include <SoftwareSerial.h>
 #include "Adafruit_GPS.h"
 #include <Adafruit_NeoPixel.h>
-#include <string.h>
-#include <Arduino.h>
-#include <SPI.h>
-#if not defined (_VARIANT_ARDUINO_DUE_X_) && not defined (_VARIANT_ARDUINO_ZERO_)
-  #include <SoftwareSerial.h>
-#endif
 
-#include "Adafruit_BLE.h"
-#include "Adafruit_BluefruitLE_SPI.h"
-#include "Adafruit_BluefruitLE_UART.h"
-#include "BluefruitConfig.h"
+  #include <string.h>
+  #include <Arduino.h>
+  #include <SPI.h>
+  #if not defined (_VARIANT_ARDUINO_DUE_X_) && not defined (_VARIANT_ARDUINO_ZERO_)
+    #include <SoftwareSerial.h>
+  #endif
 
+  #include "Adafruit_BLE.h"
+  #include "Adafruit_BluefruitLE_SPI.h"
+  #include "Adafruit_BluefruitLE_UART.h"
+
+  #include "BluefruitConfig.h"
 
 // Which pin on the Arduino is connected to the NeoPixels?
-#define PIN            6
-#define MARKPIN        2
+#define PIN            6  // What pin are the clockface neopixels connected to?
+#define MARKPIN        2  // What pin are the marker neopixels connected to?
+#define NUMPIXELS      16 // How many NeoPixels in your clockface? (recommended 12 or 24)
 
-// How many NeoPixels are attached to the Arduino?
-#define NUMPIXELS      16
+#define FACTORYRESET_ENABLE         0
+#define MINIMUM_FIRMWARE_VERSION    "0.6.6"
+#define MODE_LED_BEHAVIOUR          "MODE"115
 
 // From adaFruit NEOPIXEL goggles example: Gamma correction improves appearance of midrange colors
 const uint8_t gamma[] = {
@@ -73,14 +76,15 @@ uint32_t second_color  = pixels.Color ( 50, 20, 0);
 uint32_t marker_color  = pixels.Color ( 0, 20, 30);
 uint32_t off_color     = pixels.Color ( 0, 0, 0);
 
-bool hashadlock= false; //change this to true to show clock without gps lock
+bool hashadlock= true; //change this to true to show clock without gps lock
 
-Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
+SoftwareSerial bluefruitSS = SoftwareSerial(0, 1);
+//Adafruit_BluefruitLE_UART ble(bluefruitSS, BLUEFRUIT_UART_MODE_PIN,
+//                      BLUEFRUIT_UART_CTS_PIN, BLUEFRUIT_UART_RTS_PIN);
 
-/* ...software SPI, using SCK/MOSI/MISO user-defined SPI pins and then user selected CS/IRQ/RST */
-//Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_SCK, BLUEFRUIT_SPI_MISO,
-//                             BLUEFRUIT_SPI_MOSI, BLUEFRUIT_SPI_CS,
-//                             BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
+Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_SCK, BLUEFRUIT_SPI_MISO,
+                             BLUEFRUIT_SPI_MOSI, BLUEFRUIT_SPI_CS,
+                             BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
 
 // A small helper
 void error(const __FlashStringHelper*err) {
@@ -98,6 +102,9 @@ extern uint8_t packetbuffer[];
 
 void setup() {
   delay(500);
+  Serial.begin(115200);
+  ble.echo(false);
+  
   // Setup function runs once at startup to initialize the display and GPS.
 
   // Setup the GPS using a 9600 baud connection (the default for most
@@ -129,13 +136,25 @@ void loop() {
   // Check if GPS has new data and parse it.
   if (gps.newNMEAreceived()) {
     if (gps.parse(gps.lastNMEA())){
-      Serial.println("");
-      Serial.println ("----GPS Parse OK");
+      //Serial.println("");
+      //Serial.println ("----GPS Parse OK");
       if (gps.fix){
         hashadlock=true;
       }
     }
-    debug();
+    //debug();
+  }
+
+// Buttons
+  if (packetbuffer[1] == 'B') {
+    uint8_t buttnum = packetbuffer[2] - '0';
+    boolean pressed = packetbuffer[3] - '0';
+    Serial.print ("Button "); Serial.print(buttnum);
+    if (pressed) {
+      Serial.println(" pressed");
+    } else {
+      Serial.println(" released");
+    }
   }
 
   //Display code
