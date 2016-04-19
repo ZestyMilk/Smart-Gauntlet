@@ -69,12 +69,13 @@ Adafruit_NeoPixel markers = Adafruit_NeoPixel(3, MARKPIN, NEO_GRB + NEO_KHZ800);
 Adafruit_GPS gps(&Serial1);
 
 //uint32_t milli_color   = pixels.Color ( 120, 70, 200); //pale purple millisecond pulse
-uint32_t milli_color   = pixels.Color ( 20, 60, 80); 
-uint32_t hour_color    = pixels.Color ( 150, 10, 150);
-uint32_t minutes_color = pixels.Color ( 0, 60, 80);
-uint32_t second_color  = pixels.Color ( 50, 20, 0);
-uint32_t marker_color  = pixels.Color ( 0, 20, 30);
-uint32_t off_color     = pixels.Color ( 0, 0, 0);
+uint32_t milli_color    = pixels.Color ( 80, 200, 255); 
+uint32_t hour_color     = pixels.Color ( 150, 10, 150);
+uint32_t minutes_color  = pixels.Color ( 0, 60, 80);
+uint32_t second_color   = pixels.Color ( 150, 60, 0);
+uint32_t marker_colorbg = pixels.Color ( 0, 20, 30);
+uint32_t marker_color   = pixels.Color ( 100, 20, 30);
+uint32_t off_color      = pixels.Color ( 0, 0, 0);
 
 bool hashadlock= true; //change this to true to show clock without gps lock
 
@@ -169,6 +170,7 @@ void loop() {
     //if (gps.fix){
     if (hashadlock){
         drawclock(); //shows the clock, as long as GPS is locked, else cylon
+        markeranimate();
     }
     else {
       cylon();
@@ -198,18 +200,18 @@ void enableGPSInterrupt() {
 }
 
 void clearstrand(){
-  //Sets all neopixels blank
+  //Sets background colour for clock face and marker pixels
   for(int i=0; i<NUMPIXELS; i++){
-    pixels.setPixelColor(i, (0,0,50));
+    pixels.setPixelColor(i, (0,30,50));
     markers.setPixelColor(i, marker_color);
   }
 }
 
 void clearstrand2(){
-  //sparkling random colours instead of blank pixels
+  //Sets background colour for cylon
   for(int i=0; i<NUMPIXELS; i++){
     pixels.setPixelColor(i, (0, 70, 60));
-    markers.setPixelColor(i, marker_color);
+    markers.setPixelColor(i, marker_colorbg);
   }
 }
 
@@ -305,19 +307,18 @@ void drawclock(){
     i=0;
     s=seconds;
   }
-  
-  
-  /*
-  Serial.print ("MEL Time: ");
-  Serial.print (hours);
-  Serial.print (":");
-  Serial.print (minutes);
-  Serial.print (":");
-  Serial.print (seconds);
-  Serial.println("");
-  */
 }
 
+void markeranimate(){
+  static int u=0;
+  markers.setPixelColor(u, marker_color); //pulse colour
+  if (u>16){
+    u=0;
+  }else{
+    delay (10);
+    u++;
+  }
+}
 //copied from NeoPixel ring clock face by Kevin ALford and modified by Becky Stern for Adafruit Industries
 void add_color (uint8_t position, uint32_t color)
 {
