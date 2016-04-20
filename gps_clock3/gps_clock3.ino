@@ -73,8 +73,8 @@ uint32_t milli_color    = pixels.Color ( 80, 200, 255);
 uint32_t hour_color     = pixels.Color ( 150, 10, 150);
 uint32_t minutes_color  = pixels.Color ( 0, 60, 80);
 uint32_t second_color   = pixels.Color ( 150, 60, 0);
-uint32_t marker_colorbg = pixels.Color ( 0, 20, 30);
-uint32_t marker_color   = pixels.Color ( 100, 20, 30);
+uint32_t marker_bg      = pixels.Color ( 0, 30, 50);
+uint32_t marker_color   = pixels.Color ( 255, 0, 255);
 uint32_t off_color      = pixels.Color ( 0, 0, 0);
 
 bool hashadlock= true; //change this to true to show clock without gps lock
@@ -143,7 +143,7 @@ void loop() {
         hashadlock=true;
       }
     }
-    //debug();
+    debug();
   }
 
 // Buttons
@@ -211,7 +211,13 @@ void clearstrand2(){
   //Sets background colour for cylon
   for(int i=0; i<NUMPIXELS; i++){
     pixels.setPixelColor(i, (0, 70, 60));
-    markers.setPixelColor(i, marker_colorbg);
+  }
+}
+
+void clearstrand3(){
+  //Sets background colour for markers
+  for(int i=0; i<NUMPIXELS; i++){
+    markers.setPixelColor(i, (marker_bg));
   }
 }
 
@@ -311,11 +317,34 @@ void drawclock(){
 
 void markeranimate(){
   static int u=0;
-  markers.setPixelColor(u, marker_color); //pulse colour
-  if (u>16){
+  clearstrand3();
+  if (u>=8){
+    markers.setPixelColor(((u/8)-1), (marker_color)); //pulse colour
+  }
+  else{
+    u++;
+  }
+  if (u>=16){
+    markers.setPixelColor(((u/8)-1), (marker_color)); //pulse colour
+  }
+  else{
+    u++;
+  }
+  if (u>=24){
+    markers.setPixelColor(((u/8)-1), (marker_color)); //pulse colour
+  }
+  else{
+    u++;
+  }
+  if (u>=32){
+    clearstrand3();
+  }
+  else{
+    u++;
+  }
+  if (u>128){
     u=0;
   }else{
-    delay (10);
     u++;
   }
 }
